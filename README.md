@@ -1,5 +1,5 @@
 # RR-GCN
-Code for the paper ["R-GCN: The R Could Stand for Random"](https://arxiv.org/abs/2203.02424), written in [PyTorch Geometric](https://github.com/pyg-team/pytorch_geometric)
+[PyTorch Geometric](https://github.com/pyg-team/pytorch_geometric) code for the paper ["R-GCN: The R Could Stand for Random"](https://arxiv.org/abs/2203.02424)
 
 ## Minimal example
 This snippet generates train and test node embeddings for a KG stored as a PyG Data object. 

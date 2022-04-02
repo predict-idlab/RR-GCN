@@ -16,9 +16,11 @@ def calc_ppv(
     """Calculates 1-hop proportion of positive values per representation dimension
 
     Args:
-        x (torch.Tensor): Input node representations.
-        adj_t (torch.Tensor or torch_sparse.SparseTensor): Adjacency matrix.
-            Either in 2-row head/tail format or using a SparseTensor.
+        x (torch.Tensor):
+            Input node representations.
+
+        adj_t (torch.Tensor or torch_sparse.SparseTensor):
+            Adjacency matrix. Either in 2-row head/tail format or using a SparseTensor.
 
     Returns:
         torch.Tensor: Proportion of positive values features.
@@ -43,27 +45,27 @@ class RRGCNEmbedder(torch.nn.Module):
         """Random Relational Graph Convolutional Network Knowledge Graph Embedder.
 
         Args:
-            num_nodes (int): 
+            num_nodes (int):
                 Number of nodes in the KG.
 
-            num_layers (int): 
+            num_layers (int):
                 Number of random graph convolutions.
 
-            num_relations (int): 
+            num_relations (int):
                 Number of relations in the KG.
 
-            emb_size (int): 
+            emb_size (int):
                 Desired embedding width.
 
-            device (torch.device or str, optional): 
+            device (torch.device or str, optional):
                 PyTorch device to calculate embeddings on. Defaults to "cuda".
 
-            ppv (bool, optional): 
-                If True, concatenate PPV features to embeddings (this effectively 
+            ppv (bool, optional):
+                If True, concatenate PPV features to embeddings (this effectively
                 doubles the embedding width). Defaults to True.
 
-            seed (int, optional): 
-                Seed used to generate random transformations (fully characterizes the 
+            seed (int, optional):
+                Seed used to generate random transformations (fully characterizes the
                 embedder). Defaults to 42.
         """
         super().__init__()
@@ -89,17 +91,17 @@ class RRGCNEmbedder(torch.nn.Module):
         a typed adjacency matrix
 
         Args:
-            edge_index (torch.Tensor or torch_sparse.SparseTensor): 
-                Adjacency matrix. Either in 2-row head/tail format or using 
+            edge_index (torch.Tensor or torch_sparse.SparseTensor):
+                Adjacency matrix. Either in 2-row head/tail format or using
                 a SparseTensor.
 
-            edge_type (torch.Tensor, optional): 
-                Types for each edge in `edge_index`. Can be omitted if `edge_index` is 
+            edge_type (torch.Tensor, optional):
+                Types for each edge in `edge_index`. Can be omitted if `edge_index` is
                 a SparseTensor where types are included as values. Defaults to None.
 
-            node_idx (torch.Tensor, optional): 
-                Useful for batched embedding calculation. Mapping from node indices 
-                used in the given (sub)graph's adjancency matrix to node indices in the 
+            node_idx (torch.Tensor, optional):
+                Useful for batched embedding calculation. Mapping from node indices
+                used in the given (sub)graph's adjancency matrix to node indices in the
                 original graph. Defaults to None.
 
         Returns:
@@ -175,19 +177,19 @@ class RRGCNEmbedder(torch.nn.Module):
         """Generate embeddings for a given set of nodes of interest.
 
         Args:
-            edge_index (torch.Tensor or torch_sparse.SparseTensor): 
-                Adjacency matrix. Either in 2-row head/tail format or using a 
+            edge_index (torch.Tensor or torch_sparse.SparseTensor):
+                Adjacency matrix. Either in 2-row head/tail format or using a
                 SparseTensor.
 
-            edge_type (torch.Tensor, optional): 
+            edge_type (torch.Tensor, optional):
                 Types for each edge in `edge_index`. Can be omitted if `edge_index` is a
                 SparseTensor where types are included as values. Defaults to None.
 
-            batch_size (int, optional): 
-                Number of nodes in a single batch. For every batch, a subgraph with 
-                number of hops equal to the number of graph convolutions around the 
-                included nodes is extracted and used for message passing. If 
-                `batch_size` is 0, all nodes of interest are contained in a 
+            batch_size (int, optional):
+                Number of nodes in a single batch. For every batch, a subgraph with
+                number of hops equal to the number of graph convolutions around the
+                included nodes is extracted and used for message passing. If
+                `batch_size` is 0, all nodes of interest are contained in a
                 single batch. Defaults to 0.
 
             idx (torch.Tensor, optional):
@@ -195,10 +197,10 @@ class RRGCNEmbedder(torch.nn.Module):
                 train- and test entities). If None, extracts embeddings for all nodes
                 in the graph. Defaults to None.
 
-            subgraph (bool, optional): 
-                If False, the function does not take a k-hop subgraph before executing 
-                message passing. This is useful for small graphs where embeddings can be 
-                extracted full-batch and calculating the subgraph comes with a 
+            subgraph (bool, optional):
+                If False, the function does not take a k-hop subgraph before executing
+                message passing. This is useful for small graphs where embeddings can be
+                extracted full-batch and calculating the subgraph comes with a
                 significant overhead. Defaults to True.
 
         Returns:

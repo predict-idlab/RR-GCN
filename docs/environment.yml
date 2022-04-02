@@ -3,8 +3,8 @@ channels:
   - defaults
   - conda-forge
 dependencies:
+  - python=3.9
   - torch
   - torch_geometric
   - torch_scatter
   - torch_sparse
-prefix: /home/docs/.conda/envs/rtd38

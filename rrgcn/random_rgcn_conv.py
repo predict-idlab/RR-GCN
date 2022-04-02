@@ -48,14 +48,23 @@ class RandomRGCNConv(MessagePassing):
         r"""Random graph convolution operation, characterized by a single seed.
 
         Args:
-            in_channels (int or tuple): Size of each input sample. A tuple
+            in_channels (int or tuple):
+                Size of each input sample. A tuple
                 corresponds to the sizes of source and target dimensionalities.
                 In case no input features are given, this argument should
                 correspond to the number of nodes in your graph.
-            out_channels (int): Size of each output sample.
-            num_relations (int): Number of relations.
-            seed (int): Random seed (fully characterizes the layer).
-            **kwargs (optional): Additional arguments of
+
+            out_channels (int):
+                Size of each output sample.
+
+            num_relations (int):
+                Number of relations.
+
+            seed (int):
+                Random seed (fully characterizes the layer).
+
+            **kwargs (optional):
+                Additional arguments of
                 :class:`torch_geometric.nn.conv.MessagePassing`.
         """
         super().__init__(aggr="mean", node_dim=0, **kwargs)
@@ -87,14 +96,19 @@ class RandomRGCNConv(MessagePassing):
     ):
         r"""
         Args:
-            x: The input node features. Can be either a :obj:`[num_nodes,
+            x:
+                The input node features. Can be either a :obj:`[num_nodes,
                 in_channels]` node feature matrix, or an optional
                 one-dimensional node index tensor (in which case input features
                 are treated as trainable node embeddings).
                 Furthermore, :obj:`x` can be of type :obj:`tuple` denoting
                 source and destination node features.
-            edge_index (LongTensor or SparseTensor): The edge indices.
-            edge_type: The one-dimensional relation type/index for each edge in
+
+            edge_index (LongTensor or SparseTensor):
+                The edge indices.
+
+            edge_type:
+                The one-dimensional relation type/index for each edge in
                 :obj:`edge_index`.
                 Should be only :obj:`None` in case :obj:`edge_index` is of type
                 :class:`torch_sparse.tensor.SparseTensor`.

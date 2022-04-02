@@ -21,11 +21,17 @@ def glorot_seed(
     """Randomly generates a tensor based on a seed and Glorot initialization.
 
     Args:
-        shape (Tuple): Desired shape of the tensor.
-        device (torch.device or str, optional): Device to generate tensor on.
-            Defaults to "cuda".
-        seed (int, optional): The seed. Defaults to 42.
-        dtype (torch.dtype, optional): Tensor type. Defaults to torch.float32.
+        shape (Tuple):
+            Desired shape of the tensor.
+
+        device (torch.device or str, optional):
+            Device to generate tensor on. Defaults to "cuda".
+
+        seed (int, optional):
+            The seed. Defaults to 42.
+
+        dtype (torch.dtype, optional):
+            Tensor type. Defaults to torch.float32.
 
     Returns:
         torch.Tensor: The randomly generated tensor

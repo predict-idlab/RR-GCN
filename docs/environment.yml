@@ -4,7 +4,9 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
-  - torch
-  - torch_geometric
-  - torch_scatter
-  - torch_sparse
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pyg
+  - pytorch-scatter
+  - pytorch-sparse

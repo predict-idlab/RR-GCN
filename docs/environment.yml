@@ -1,0 +1,10 @@
+name: rtd38
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - torch
+  - torch_geometric
+  - torch_scatter
+  - torch_sparse
+prefix: /home/docs/.conda/envs/rtd38

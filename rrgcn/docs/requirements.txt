@@ -1,2 +1,4 @@
 torch
-torch_geometric
+torch-scatter
+torch-sparse
+torch-geometric

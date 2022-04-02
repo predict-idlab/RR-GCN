@@ -1,0 +1,259 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rrgcn package &#8212; rrgcn  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="rrgcn  documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="rrgcn-package">
+<h1>rrgcn package<a class="headerlink" href="#rrgcn-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-rrgcn.random_rgcn_conv">
+<span id="rrgcn-random-rgcn-conv-module"></span><h2>rrgcn.random_rgcn_conv module<a class="headerlink" href="#module-rrgcn.random_rgcn_conv" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="rrgcn.random_rgcn_conv.RandomRGCNConv">
+<em class="property">class </em><code class="descclassname">rrgcn.random_rgcn_conv.</code><code class="descname">RandomRGCNConv</code><span class="sig-paren">(</span><em>in_channels: typing.Union[int, typing.Tuple[int, int]], out_channels: int, num_relations: int, seed: int = None, **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rrgcn/random_rgcn_conv.html#RandomRGCNConv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_conv.RandomRGCNConv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">torch_geometric.nn.conv.message_passing.MessagePassing</span></code></p>
+<dl class="method">
+<dt id="rrgcn.random_rgcn_conv.RandomRGCNConv.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>x: typing.Union[torch.Tensor, NoneType, typing.Tuple[typing.Union[torch.Tensor, NoneType], torch.Tensor]], edge_index: typing.Union[torch.Tensor, torch_sparse.tensor.SparseTensor], edge_type: typing.Union[torch.Tensor, NoneType] = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rrgcn/random_rgcn_conv.html#RandomRGCNConv.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_conv.RandomRGCNConv.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>x: The input node features. Can be either a :obj:<a href="#id1"><span class="problematic" id="id2">`</span></a>[num_nodes,</dt>
+<dd>in_channels]` node feature matrix, or an optional
+one-dimensional node index tensor (in which case input features
+are treated as trainable node embeddings).
+Furthermore, <code class="xref py py-obj docutils literal"><span class="pre">x</span></code> can be of type <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><code class="xref py py-obj docutils literal"><span class="pre">tuple</span></code></a> denoting
+source and destination node features.</dd>
+</dl>
+<p>edge_index (LongTensor or SparseTensor): The edge indices.
+edge_type: The one-dimensional relation type/index for each edge in</p>
+<blockquote class="last">
+<div><code class="xref py py-obj docutils literal"><span class="pre">edge_index</span></code>.
+Should be only <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal"><span class="pre">None</span></code></a> in case <code class="xref py py-obj docutils literal"><span class="pre">edge_index</span></code> is of type
+<code class="xref py py-class docutils literal"><span class="pre">torch_sparse.tensor.SparseTensor</span></code>.
+(default: <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal"><span class="pre">None</span></code></a>)</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="rrgcn.random_rgcn_conv.RandomRGCNConv.message">
+<code class="descname">message</code><span class="sig-paren">(</span><em>x_j: torch.Tensor</em><span class="sig-paren">)</span> &rarr; torch.Tensor<a class="reference internal" href="_modules/rrgcn/random_rgcn_conv.html#RandomRGCNConv.message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_conv.RandomRGCNConv.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="rrgcn.random_rgcn_conv.RandomRGCNConv.message_and_aggregate">
+<code class="descname">message_and_aggregate</code><span class="sig-paren">(</span><em>adj_t: torch_sparse.tensor.SparseTensor</em>, <em>x: torch.Tensor</em><span class="sig-paren">)</span> &rarr; torch.Tensor<a class="reference internal" href="_modules/rrgcn/random_rgcn_conv.html#RandomRGCNConv.message_and_aggregate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_conv.RandomRGCNConv.message_and_aggregate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rrgcn.random_rgcn_conv.glorot_seed">
+<code class="descclassname">rrgcn.random_rgcn_conv.</code><code class="descname">glorot_seed</code><span class="sig-paren">(</span><em>shape: typing.Tuple</em>, <em>device: typing.Union[torch.device</em>, <em>str] = 'cuda'</em>, <em>seed: int = 42</em>, <em>dtype: torch.dtype = torch.float32</em><span class="sig-paren">)</span> &rarr; torch.Tensor<a class="reference internal" href="_modules/rrgcn/random_rgcn_conv.html#glorot_seed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_conv.glorot_seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly generates a tensor based on a seed and Glorot initialization.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">shape (Tuple): Desired shape of the tensor.
+device (torch.device or str, optional): Device to generate tensor on.</p>
+<blockquote>
+<div>Defaults to &#8220;cuda&#8221;.</div></blockquote>
+<p class="last">seed (int, optional): The seed. Defaults to 42.
+dtype (torch.dtype, optional): Tensor type. Defaults to torch.float32.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>torch.Tensor: The randomly generated tensor</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rrgcn.random_rgcn_embedder">
+<span id="rrgcn-random-rgcn-embedder-module"></span><h2>rrgcn.random_rgcn_embedder module<a class="headerlink" href="#module-rrgcn.random_rgcn_embedder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="rrgcn.random_rgcn_embedder.RRGCNEmbedder">
+<em class="property">class </em><code class="descclassname">rrgcn.random_rgcn_embedder.</code><code class="descname">RRGCNEmbedder</code><span class="sig-paren">(</span><em>num_nodes: int</em>, <em>num_layers: int</em>, <em>num_relations: int</em>, <em>emb_size: int</em>, <em>device: typing.Union[torch.device</em>, <em>str] = 'cuda'</em>, <em>ppv: bool = True</em>, <em>seed: int = 42</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rrgcn/random_rgcn_embedder.html#RRGCNEmbedder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_embedder.RRGCNEmbedder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="method">
+<dt id="rrgcn.random_rgcn_embedder.RRGCNEmbedder.embeddings">
+<code class="descname">embeddings</code><span class="sig-paren">(</span><em>edge_index: typing.Union[torch.Tensor, torch_sparse.tensor.SparseTensor], edge_type: typing.Union[torch.Tensor, NoneType] = None, batch_size: int = 0, idx: typing.Union[torch.Tensor, NoneType] = None, subgraph: bool = True</em><span class="sig-paren">)</span> &rarr; torch.Tensor<a class="reference internal" href="_modules/rrgcn/random_rgcn_embedder.html#RRGCNEmbedder.embeddings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_embedder.RRGCNEmbedder.embeddings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate embeddings for a given set of nodes of interest.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>edge_index (torch.Tensor or torch_sparse.SparseTensor): Adjacency matrix.</dt>
+<dd>Either in 2-row head/tail format or using a SparseTensor.</dd>
+<dt>edge_type (torch.Tensor, optional): Types for each edge in <cite>edge_index</cite>.</dt>
+<dd>Can be omitted if <cite>edge_index</cite> is a SparseTensor where types are
+included as values. Defaults to None.</dd>
+<dt>batch_size (int, optional): Number of nodes in a single batch.</dt>
+<dd>For every batch, a subgraph with number of hops equal to the number
+of graph convolutions around the included nodes is extracted and used
+for message passing. If <cite>batch_size</cite> is 0, all nodes of interest
+are contained in a single batch. Defaults to 0.</dd>
+<dt>idx (torch.Tensor, optional):</dt>
+<dd>Node indices to extract embeddings for (e.g. indices for
+train- and test entities). If None, extracts embeddings for all nodes
+in the graph. Defaults to None.</dd>
+<dt>subgraph (bool, optional): If False, the function does not take a</dt>
+<dd>k-hop subgraph before executing message passing. This is useful for
+small graphs where embeddings can be extracted full-batch and
+calculating the subgraph comes with a significant overhead.
+Defaults to True.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>torch.Tensor: Node embeddings for given nodes of interest</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="rrgcn.random_rgcn_embedder.RRGCNEmbedder.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>edge_index: typing.Union[torch.Tensor, torch_sparse.tensor.SparseTensor], edge_type: typing.Union[torch.Tensor, NoneType] = None, node_idx: typing.Union[torch.Tensor, NoneType] = None</em><span class="sig-paren">)</span> &rarr; torch.Tensor<a class="reference internal" href="_modules/rrgcn/random_rgcn_embedder.html#RRGCNEmbedder.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_embedder.RRGCNEmbedder.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates node embeddings for a (sub)graph specified by
+a typed adjacency matrix</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>edge_index (torch.Tensor or torch_sparse.SparseTensor): Adjacency matrix.</dt>
+<dd>Either in 2-row head/tail format or using a SparseTensor.</dd>
+<dt>edge_type (torch.Tensor, optional): Types for each edge in <cite>edge_index</cite>.</dt>
+<dd>Can be omitted if <cite>edge_index</cite> is a SparseTensor where types are
+included as values. Defaults to None.</dd>
+<dt>node_idx (torch.Tensor, optional): Useful for batched embedding calculation.</dt>
+<dd>Mapping from node indices used in the given (sub)graph&#8217;s adjancency
+matrix to node indices in the original graph. Defaults to None.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>torch.Tensor: Node embeddings for given (sub)graph.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rrgcn.random_rgcn_embedder.calc_ppv">
+<code class="descclassname">rrgcn.random_rgcn_embedder.</code><code class="descname">calc_ppv</code><span class="sig-paren">(</span><em>x: torch.Tensor, adj_t: typing.Union[torch.Tensor, torch_sparse.tensor.SparseTensor]</em><span class="sig-paren">)</span> &rarr; torch.Tensor<a class="reference internal" href="_modules/rrgcn/random_rgcn_embedder.html#calc_ppv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rrgcn.random_rgcn_embedder.calc_ppv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates 1-hop proportion of positive values per representation dimension</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">x (torch.Tensor): Input node representations.
+adj_t (torch.Tensor or torch_sparse.SparseTensor): Adjacency matrix.</p>
+<blockquote class="last">
+<div>Either in 2-row head/tail format or using a SparseTensor.</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd>torch.Tensor: Proportion of positive values features.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rrgcn">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-rrgcn" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">rrgcn package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-rrgcn.random_rgcn_conv">rrgcn.random_rgcn_conv module</a></li>
+<li><a class="reference internal" href="#module-rrgcn.random_rgcn_embedder">rrgcn.random_rgcn_embedder module</a></li>
+<li><a class="reference internal" href="#module-rrgcn">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rrgcn.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Vic Degraeve.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/rrgcn.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

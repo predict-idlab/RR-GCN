@@ -11,7 +11,9 @@ Welcome to rrgcn's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   
+   RR-GCN <rrgcn.rst>
+   Contributing, Citing and Contact <ccc.rst>
 
 
 Indices and tables

@@ -14,11 +14,3 @@ Welcome to rrgcn's documentation!
    
    RR-GCN <rrgcn.rst>
    Contributing, Citing and Contact <ccc.rst>
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

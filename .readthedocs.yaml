@@ -14,4 +14,4 @@ sphinx:
 python:
   install:
     - method: setuptools
-      path: rrgcn
+      path: .

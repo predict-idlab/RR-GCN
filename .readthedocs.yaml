@@ -12,7 +12,6 @@ sphinx:
    configuration: docs/conf.py
 
 python:
-  version: "3.9"
   install:
     - method: setuptools
       path: rrgcn

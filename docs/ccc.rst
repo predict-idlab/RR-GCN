@@ -1,7 +1,7 @@
 Contributing, Citing and Contact
 ================================
 
-If you have any questions, are experiencing bugs in the RRGCN implementation, or would
+If you have any questions, are experiencing bugs in the RR-GCN implementation, or would
 like to contribute, please feel free to create an issue/pull request in
 this repository or get in touch with us at
 

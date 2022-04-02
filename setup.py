@@ -7,7 +7,7 @@ install_requires = ["tqdm", "numpy"]
 setup(
     name="rrgcn",
     version=__version__,
-    description="Graph Neural Network Library for PyTorch",
+    description="Random Relational Graph Convolutional Networks",
     author="Vic Degraeve",
     author_email="vic.degraeve@ugent.be",
     url=URL,
@@ -21,5 +21,5 @@ setup(
     python_requires=">=3.7",
     install_requires=install_requires,
     packages=find_packages(),
-    include_package_data=True,
+    include_package_data=True
 )

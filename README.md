@@ -1,5 +1,7 @@
-# RR-GCN
+# RR-GCN: Random Relational Graph Convolutional Networks
 [PyTorch Geometric](https://github.com/pyg-team/pytorch_geometric) code for the paper ["R-GCN: The R Could Stand for Random"](https://arxiv.org/abs/2203.02424)
+
+**RR-GCN** is an extension of [Relational Graph Convolutional Networks (R-GCN)](https://arxiv.org/pdf/1703.06103.pdf) in which the weights are randomly initialised and kept frozen (i.e. no training step is required). As such, our technique is unsupervised and the produced embeddings can be used for multiple downstream ML tasks. Surprisingly, empirical results indicate that the embeddings produced by our RR-GCN can be competitive, and even sometimes outperform, the original R-GCN.
 
 ## Minimal example
 This snippet generates train and test node embeddings for a KG stored as a PyG Data object. 

@@ -20,9 +20,7 @@ embeddings = embedder.embeddings(data.edge_index,
 train_embeddings = embeddings[:len(data.train_idx)]
 test_embeddings = embeddings[len(data.train_idx):] 
 ```
-[Documentation for `RRGCNEmbedder`](rrgcn/random_rgcn_embedder.py#L43) 
-
-[Documentation for `embeddings()`](rrgcn/random_rgcn_embedder.py#L161) 
+[Check our documentation for more information](https://rr-gcn.readthedocs.io/en/latest/)
 
 [Example notebook for the AIFB dataset.](examples/aifb.ipynb)
 
@@ -30,7 +28,7 @@ test_embeddings = embeddings[len(data.train_idx):]
 ## Installation
 After installing the correct PyG version for your PyTorch/CUDA installation as documented in their [installation instructions](https://github.com/pyg-team/pytorch_geometric#installation), install the RR-GCN package using:
 
-`pip install git+https://github.com/predict-idlab/RR-GCN`
+`pip install rrgcn`
 
 ## Cite
 ```

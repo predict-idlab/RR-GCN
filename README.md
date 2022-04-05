@@ -16,6 +16,7 @@ embedder = RRGCNEmbedder(num_nodes=data.num_nodes,
                          num_relations=dataset.num_relations, 
                          num_layers=2, 
                          emb_size=2048,
+                         device="cuda",
                          ppv=True)
 embeddings = embedder.embeddings(data.edge_index, 
                            data.edge_type,

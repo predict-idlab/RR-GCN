@@ -108,10 +108,10 @@ class NodeEncoder(nn.Module):
                     device=self.device,
                 )
 
-                node_embs[idx.to(self.device), :] = (
+                node_embs[idx.cpu(), :] = (
                     feat.to(self.device) @ random_transform
                 ).cpu()
 
         # Generate initital node embeddings on CPU and only transfer
         # necessary nodes to GPU once masked
-        return node_embs[node_idx, :].to(self.device)
+        return node_embs[node_idx.cpu(), :].to(self.device)

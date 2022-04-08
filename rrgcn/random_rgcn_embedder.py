@@ -5,30 +5,11 @@ import torch.nn.functional as F
 import torch_sparse
 from torch_geometric.utils.subgraph import k_hop_subgraph
 from torch_sparse import SparseTensor
+from torch_geometric.nn.inits import glorot
 from tqdm import tqdm
 
-from .random_rgcn_conv import RandomRGCNConv, glorot_seed
-
-
-def calc_ppv(
-    x: torch.Tensor, adj_t: Union[torch.Tensor, torch_sparse.SparseTensor]
-) -> torch.Tensor:
-    """Calculates 1-hop proportion of positive values per representation dimension
-
-    Args:
-        x (torch.Tensor):
-            Input node representations.
-
-        adj_t (torch.Tensor or torch_sparse.SparseTensor):
-            Adjacency matrix. Either in 2-row head/tail format or using a SparseTensor.
-
-    Returns:
-        torch.Tensor: Proportion of positive values features.
-    """
-    if isinstance(adj_t, torch.Tensor):
-        adj_t = SparseTensor(row=adj_t[0], col=adj_t[1]).to(x.device).t()
-    adj_t = adj_t.set_value(None, layout=None)
-    return torch_sparse.matmul(adj_t, (x > 0).float(), reduce="mean")
+from .random_rgcn_conv import RandomRGCNConv
+from .util import calc_ppv, glorot_seed
 
 
 class RRGCNEmbedder(torch.nn.Module):

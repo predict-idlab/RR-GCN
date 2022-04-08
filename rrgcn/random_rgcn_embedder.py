@@ -1,5 +1,5 @@
 from typing import Optional, Union
-from rrgcn.node_encoder import NodeEncoder
+from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
@@ -9,6 +9,7 @@ from torch_sparse import SparseTensor
 from tqdm import tqdm
 from typing import Optional, Dict, Tuple
 
+from .node_encoder import NodeEncoder
 from .random_rgcn_conv import RandomRGCNConv
 from .util import calc_ppv
 
@@ -238,11 +239,13 @@ class RRGCNEmbedder(torch.nn.Module):
             # Split nodes to generate embeddings for into batches
             batches = all_nodes.split(batch_size)
 
+        normalized_node_features = node_features
         if node_features is not None and normalize_node_features:
+            normalized_node_features = deepcopy(node_features)
             for type_id, (typed_idx, feat) in node_features.items():
                 m = feat.mean(0)
                 s = feat.std(0)
-                node_features[type_id] = (typed_idx, (feat - m) / s)
+                normalized_node_features[type_id] = (typed_idx, (feat - m) / s)
 
         embs = []
         for batch in tqdm(batches):
@@ -273,12 +276,13 @@ class RRGCNEmbedder(torch.nn.Module):
             sub_node_features = None
             if node_features is not None:
                 sub_node_features = {}
-                for type_id, (typed_idx, feat) in node_features.items():
-                    selected_idx = typed_idx[torch.isin(typed_idx, nodes)]
+                for type_id, (typed_idx, feat) in normalized_node_features.items():
+                    mask = torch.isin(typed_idx, nodes)
+                    selected_idx = typed_idx[mask]
                     if selected_idx.numel() == 0:
                         continue
 
-                    sub_node_features[type_id] = selected_idx
+                    sub_node_features[type_id] = (selected_idx, feat[mask])
 
             # Calculate embeddings for all nodes participating in batch and then select
             # the queried nodes

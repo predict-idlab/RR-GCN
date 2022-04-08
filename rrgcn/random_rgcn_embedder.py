@@ -1,4 +1,5 @@
 from typing import Optional, Union
+from rrgcn.node_encoder import NodeEncoder
 
 import torch
 import torch.nn.functional as F
@@ -7,6 +8,7 @@ from torch_geometric.utils.subgraph import k_hop_subgraph
 from torch_sparse import SparseTensor
 from torch_geometric.nn.inits import glorot
 from tqdm import tqdm
+from typing import Optional, Dict, Tuple
 
 from .random_rgcn_conv import RandomRGCNConv
 from .util import calc_ppv, glorot_seed
@@ -62,10 +64,15 @@ class RRGCNEmbedder(torch.nn.Module):
             for _ in range(num_layers)
         ]
 
+        self.ne = NodeEncoder(
+            emb_size=emb_size, num_nodes=num_nodes, seed=self.seed, device=device
+        )
+
     def forward(
         self,
         edge_index: Union[torch.Tensor, torch_sparse.SparseTensor],
         edge_type: Optional[torch.Tensor] = None,
+        node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_idx: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Calculates node embeddings for a (sub)graph specified by
@@ -79,6 +86,20 @@ class RRGCNEmbedder(torch.nn.Module):
             edge_type (torch.Tensor, optional):
                 Types for each edge in `edge_index`. Can be omitted if `edge_index` is
                 a SparseTensor where types are included as values. Defaults to None.
+
+            node_features (Dict[int, Tuple[torch.Tensor, torch.Tensor]], optional):
+                Dictionary with featured node type identifiers as keys, and tuples
+                of node indices and initial features as values.
+
+                For example, if nodes `[3, 5, 7]` are literals of type `5`
+                with numeric values `[0.7, 0.1, 0.5]`, `node_features` should be:
+                `{5: (torch.tensor([3, 5, 7]), torch.tensor([0.7], [0.1], [0.5]))}`
+
+                Featured nodes are not limited to numeric literals, e.g. word embeddings
+                can also be passed for string literals.
+
+                The node indices used to specify the locations of literal nodes
+                should be included in `node_idx` (if supplied).
 
             node_idx (torch.Tensor, optional):
                 Useful for batched embedding calculation. Mapping from node indices
@@ -97,14 +118,9 @@ class RRGCNEmbedder(torch.nn.Module):
         if edge_type is not None:
             kwargs = {**kwargs, "edge_type": edge_type}
 
-        # Generate initital node embeddings on CPU and only transfer
-        # necessary nodes to GPU
-        x = glorot_seed(
-            (self.num_nodes, self.emb_size),
-            seed=self.seed,
-            device="cpu",
-        )[node_idx, :]
-        x = self.layers[0](x.to(self.device), **kwargs)
+        x = self.ne(node_features, node_idx)
+
+        x = self.layers[0](x, **kwargs)
 
         if self.ppv:
             # Calculate proportion of positive values in 1-hop neighbourhood
@@ -152,6 +168,7 @@ class RRGCNEmbedder(torch.nn.Module):
         edge_index: Union[torch.Tensor, torch_sparse.SparseTensor],
         edge_type: Optional[torch.Tensor] = None,
         batch_size: int = 0,
+        node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
     ) -> torch.Tensor:
@@ -172,6 +189,20 @@ class RRGCNEmbedder(torch.nn.Module):
                 included nodes is extracted and used for message passing. If
                 `batch_size` is 0, all nodes of interest are contained in a
                 single batch. Defaults to 0.
+
+            node_features (Dict[int, Tuple[torch.Tensor, torch.Tensor]], optional):
+                Dictionary with featured node type identifiers as keys, and tuples
+                of node indices and initial features as values.
+
+                For example, if nodes `[3, 5, 7]` are literals of type `5`
+                with numeric values `[0.7, 0.1, 0.5]`, `node_features` should be:
+                `{5: (torch.tensor([3, 5, 7]), torch.tensor([0.7], [0.1], [0.5]))}`
+
+                Featured nodes are not limited to numeric literals, e.g. word embeddings
+                can also be passed for string literals.
+
+                The node indices used to specify the locations of literal nodes
+                should be included in `idx` (if supplied).
 
             idx (torch.Tensor, optional):
                 Node indices to extract embeddings for (e.g. indices for
@@ -230,9 +261,23 @@ class RRGCNEmbedder(torch.nn.Module):
                 .t()
             )
 
+            sub_node_features = None
+            if node_features is not None:
+                sub_node_features = {}
+                for type_id, (typed_idx, feat) in node_features.items():
+                    selected_idx = typed_idx[torch.isin(typed_idx, idx)]
+                    if selected_idx.numel() == 0:
+                        continue
+
+                    sub_node_features[type_id] = selected_idx
+
             # Calculate embeddings for all nodes participating in batch and then select
             # the queried nodes
-            emb = self(adj_t, node_idx=nodes)[mapping].detach().cpu()
+            emb = (
+                self(adj_t, node_idx=nodes, node_features=sub_node_features)[mapping]
+                .detach()
+                .cpu()
+            )
             embs.append(emb)
 
         return torch.concat(embs)

@@ -11,7 +11,6 @@ class NodeEncoder(nn.Module):
         self,
         emb_size: int,
         num_nodes: int,
-        num_featured_node_types: int = 0,
         seed: int = 42,
         device: Union[torch.device, str] = "cuda",
     ):
@@ -80,6 +79,8 @@ class NodeEncoder(nn.Module):
         if node_idx is None:
             node_idx = torch.arange(self.num_nodes)
 
+        # Generate initital node embeddings on CPU and only transfer
+        # necessary nodes to GPU
         node_embs = glorot_seed(
             (self.num_nodes, self.emb_size),
             seed=self.seed,
@@ -104,6 +105,7 @@ class NodeEncoder(nn.Module):
                     + "as many elements as there are feature vectors"
                 )
 
+                # map idx from indices in original graph to indices in the subgraph
                 remapped_idx = (
                     (node_idx.ravel()[..., None] == idx).any(-1).nonzero().ravel()
                 )

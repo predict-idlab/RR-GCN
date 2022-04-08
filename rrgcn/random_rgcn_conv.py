@@ -10,6 +10,8 @@ from torch_geometric.nn.conv.rgcn_conv import masked_edge_index
 from torch_geometric.typing import Adj, OptTensor
 from torch_sparse import SparseTensor, matmul
 
+from .util import glorot_seed
+
 
 class RandomRGCNConv(MessagePassing):
     def __init__(

@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import torch_sparse
 from torch_geometric.utils.subgraph import k_hop_subgraph
 from torch_sparse import SparseTensor
-from torch_geometric.nn.inits import glorot
 from tqdm import tqdm
 from typing import Optional, Dict, Tuple
 

@@ -11,7 +11,7 @@ from tqdm import tqdm
 from typing import Optional, Dict, Tuple
 
 from .random_rgcn_conv import RandomRGCNConv
-from .util import calc_ppv, glorot_seed
+from .util import calc_ppv
 
 
 class RRGCNEmbedder(torch.nn.Module):
@@ -169,6 +169,7 @@ class RRGCNEmbedder(torch.nn.Module):
         edge_type: Optional[torch.Tensor] = None,
         batch_size: int = 0,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
+        normalize_node_features: bool = False,
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
     ) -> torch.Tensor:
@@ -204,6 +205,9 @@ class RRGCNEmbedder(torch.nn.Module):
                 The node indices used to specify the locations of literal nodes
                 should be included in `idx` (if supplied).
 
+           normalize_node_features (bool, optional):
+                If True and node_features is not None, normalize supplied node features.
+
             idx (torch.Tensor, optional):
                 Node indices to extract embeddings for (e.g. indices for
                 train- and test entities). If None, extracts embeddings for all nodes
@@ -234,6 +238,12 @@ class RRGCNEmbedder(torch.nn.Module):
         else:
             # Split nodes to generate embeddings for into batches
             batches = all_nodes.split(batch_size)
+
+        if node_features is not None and normalize_node_features:
+            for type_id, (typed_idx, feat) in node_features.items():
+                m = feat.mean(0)
+                s = feat.std(0)
+                node_features[type_id] = (typed_idx, (feat - m) / s)
 
         embs = []
         for batch in tqdm(batches):

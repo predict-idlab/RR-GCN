@@ -1,7 +1,8 @@
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import torch
 import torch_sparse
+from torch_geometric.nn.inits import glorot
 from torch_sparse import SparseTensor
 
 

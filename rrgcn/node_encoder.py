@@ -94,7 +94,6 @@ class NodeEncoder(nn.Module):
                 ), f"Node indices for {type_id} should be long"
                 idx = idx.ravel()
 
-                assert feat.device == self.device
                 assert len(feat.shape) == 2, (
                     f"Node feature tensor for {type_id} should be two-dimensional"
                     + "First dimension number of nodes of this type, second dimension"
@@ -107,7 +106,10 @@ class NodeEncoder(nn.Module):
 
                 # map idx from indices in original graph to indices in the subgraph
                 remapped_idx = (
-                    (node_idx.ravel()[..., None] == idx).any(-1).nonzero().ravel()
+                    (node_idx.to(self.device).ravel()[..., None] == idx.to(self.device))
+                    .any(-1)
+                    .nonzero()
+                    .ravel()
                 )
                 assert (
                     remapped_idx.numel() == idx.numel()
@@ -118,6 +120,8 @@ class NodeEncoder(nn.Module):
                     device=self.device,
                 )
 
-                node_embs[remapped_idx, :] = feat @ random_transform
+                node_embs[remapped_idx.to(self.device), :] = (
+                    feat.to(self.device) @ random_transform
+                )
 
         return node_embs

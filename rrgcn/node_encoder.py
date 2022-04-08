@@ -79,13 +79,11 @@ class NodeEncoder(nn.Module):
         if node_idx is None:
             node_idx = torch.arange(self.num_nodes)
 
-        # Generate initital node embeddings on CPU and only transfer
-        # necessary nodes to GPU
         node_embs = glorot_seed(
             (self.num_nodes, self.emb_size),
             seed=self.seed,
             device="cpu",
-        )[node_idx, :].to(self.device)
+        )
 
         if node_features is not None:
             for type_id, (idx, feat) in node_features.items():
@@ -104,24 +102,16 @@ class NodeEncoder(nn.Module):
                     + "as many elements as there are feature vectors"
                 )
 
-                # map idx from indices in original graph to indices in the subgraph
-                remapped_idx = (
-                    (node_idx.to(self.device).ravel()[..., None] == idx.to(self.device))
-                    .any(-1)
-                    .nonzero()
-                    .ravel()
-                )
-                assert (
-                    remapped_idx.numel() == idx.numel()
-                ), f"Not all nodes idx of type {type_id} are in node_idx"
                 random_transform = glorot_seed(
                     (feat.shape[1], self.emb_size),
                     seed=self.seed + type_id,
                     device=self.device,
                 )
 
-                node_embs[remapped_idx.to(self.device), :] = (
+                node_embs[idx.to(self.device), :] = (
                     feat.to(self.device) @ random_transform
-                )
+                ).cpu()
 
-        return node_embs
+        # Generate initital node embeddings on CPU and only transfer
+        # necessary nodes to GPU once masked
+        return node_embs[node_idx, :].to(self.device)

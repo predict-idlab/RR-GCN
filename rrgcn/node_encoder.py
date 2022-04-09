@@ -92,6 +92,12 @@ class NodeEncoder(nn.Module):
                 ), f"Node indices for {type_id} should be long"
                 idx = idx.ravel()
 
+                assert torch.isin(
+                    idx.to(self.device), node_idx.to(self.device)
+                ).all(), (
+                    f"Featured node indices for {type_id} should all be"
+                    + "in the current subgraph"
+                )
                 assert len(feat.shape) == 2, (
                     f"Node feature tensor for {type_id} should be two-dimensional"
                     + "First dimension number of nodes of this type, second dimension"

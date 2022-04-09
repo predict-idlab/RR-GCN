@@ -277,7 +277,7 @@ class RRGCNEmbedder(torch.nn.Module):
             if node_features is not None:
                 sub_node_features = {}
                 for type_id, (typed_idx, feat) in normalized_node_features.items():
-                    mask = torch.isin(typed_idx, nodes)
+                    mask = torch.isin(typed_idx.to(nodes.device), nodes)
                     selected_idx = typed_idx[mask]
                     if selected_idx.numel() == 0:
                         continue

@@ -1,9 +1,9 @@
-from typing import Optional, Union, Dict, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 import torch
 from torch import nn
 
-from .util import glorot_seed
+from .util import glorot_seed, uniform_seed
 
 
 class NodeEncoder(nn.Module):
@@ -12,6 +12,7 @@ class NodeEncoder(nn.Module):
         emb_size: int,
         num_nodes: int,
         seed: int = 42,
+        init_mode: str = "uniform",
         device: Union[torch.device, str] = "cuda",
     ):
         """Random (untrained) node encoder for the initial node embeddings,
@@ -33,6 +34,11 @@ class NodeEncoder(nn.Module):
                 Seed used to generate random transformations (fully characterizes the
                 embedder). Defaults to 42.
 
+            init_mode (str, optional):
+                Initialization for node embeddings. One of "glorot" (based on
+                fan-in, i.e. number of nodes, and fan-out) or
+                "uniform" (between -1 and 1). Defaults to "uniform".
+
             device (Union[torch.device, str], optional):
                 PyTorch device to calculate embeddings on. Defaults to "cuda".
         """
@@ -41,6 +47,7 @@ class NodeEncoder(nn.Module):
         self.device = device
         self.seed = seed
         self.num_nodes = num_nodes
+        self.init_fn = glorot_seed if init_mode == "glorot" else uniform_seed
 
     def forward(
         self,
@@ -79,7 +86,7 @@ class NodeEncoder(nn.Module):
         if node_idx is None:
             node_idx = torch.arange(self.num_nodes)
 
-        node_embs = glorot_seed(
+        node_embs = self.init_fn(
             (self.num_nodes, self.emb_size),
             seed=self.seed,
             device="cpu",

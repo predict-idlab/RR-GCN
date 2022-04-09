@@ -2,7 +2,7 @@ from typing import Tuple, Union
 
 import torch
 import torch_sparse
-from torch_geometric.nn.inits import glorot
+from torch_geometric.nn.inits import glorot, uniform
 from torch_sparse import SparseTensor
 
 
@@ -54,4 +54,34 @@ def glorot_seed(
     torch.manual_seed(seed)
     a = torch.zeros(shape, device=device, dtype=dtype)
     glorot(a)
+    return a
+
+
+def uniform_seed(
+    shape: Tuple,
+    device: Union[torch.device, str] = "cuda",
+    seed: int = 42,
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """Randomly generates a tensor based on a seed and uniform initialization.
+
+    Args:
+        shape (Tuple):
+            Desired shape of the tensor.
+
+        device (torch.device or str, optional):
+            Device to generate tensor on. Defaults to "cuda".
+
+        seed (int, optional):
+            The seed. Defaults to 42.
+
+        dtype (torch.dtype, optional):
+            Tensor type. Defaults to torch.float32.
+
+    Returns:
+        torch.Tensor: The randomly generated tensor
+    """
+    torch.manual_seed(seed)
+    a = torch.zeros(shape, device=device, dtype=dtype)
+    uniform(1, a)
     return a

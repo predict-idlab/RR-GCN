@@ -1,13 +1,13 @@
-from typing import Optional, Union
 from copy import deepcopy
+from typing import Dict, Optional, Tuple, Union
 
+import sklearn
 import torch
 import torch.nn.functional as F
 import torch_sparse
 from torch_geometric.utils.subgraph import k_hop_subgraph
 from torch_sparse import SparseTensor
 from tqdm import tqdm
-from typing import Optional, Dict, Tuple
 
 from .node_encoder import NodeEncoder
 from .random_rgcn_conv import RandomRGCNConv
@@ -162,6 +162,15 @@ class RRGCNEmbedder(torch.nn.Module):
 
         return x
 
+    def get_last_fit_scalers(self) -> Dict[int, sklearn.base.TransformerMixin]:
+        """If during the last call to `embeddings()`, scalers were fit,
+        returns the per featured node fitted sklearn scalers.
+
+        Returns:
+            Dict[int, sklearn.base.TransformerMixin]: the fitted scalers
+        """
+        return self.node_features_scalers
+
     @torch.no_grad()
     def embeddings(
         self,
@@ -169,7 +178,9 @@ class RRGCNEmbedder(torch.nn.Module):
         edge_type: Optional[torch.Tensor] = None,
         batch_size: int = 0,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
-        normalize_node_features: bool = False,
+        node_features_scalers: Optional[
+            Dict[int, sklearn.base.TransformerMixin]
+        ] = None,
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
     ) -> torch.Tensor:
@@ -205,8 +216,11 @@ class RRGCNEmbedder(torch.nn.Module):
                 The node indices used to specify the locations of literal nodes
                 should be included in `idx` (if supplied).
 
-           normalize_node_features (bool, optional):
-                If True and node_features is not None, normalize supplied node features.
+           node_features_scalers (Dict[int, sklearn.base.TransformerMixin], optional):
+                Dictionary with featured node type identifiers as keys, and sklearn
+                scalers as values. If scalers are not fit, they will be fit on the data.
+                The fit scalers can be retrieved using `.get_last_fit_scalers()`.
+                If None, no scaling is applied. Defaults to None.
 
             idx (torch.Tensor, optional):
                 Node indices to extract embeddings for (e.g. indices for
@@ -240,12 +254,23 @@ class RRGCNEmbedder(torch.nn.Module):
             batches = all_nodes.split(batch_size)
 
         normalized_node_features = node_features
-        if node_features is not None and normalize_node_features:
+        if node_features is not None and node_features_scalers is not None:
             normalized_node_features = deepcopy(node_features)
+            self.node_features_scalers = deepcopy(node_features_scalers)
             for type_id, (typed_idx, feat) in node_features.items():
-                m = feat.mean(0)
-                s = feat.std(0)
-                normalized_node_features[type_id] = (typed_idx, (feat - m) / s)
+                if not hasattr(normalized_node_features[type_id], "n_features_in_"):
+                    self.node_features_scalers[type_id] = self.node_features_scalers[
+                        type_id
+                    ].fit(feat)
+
+                normalized_node_features[type_id] = (
+                    typed_idx,
+                    torch.tensor(
+                        self.node_features_scalers[type_id].transform(feat),
+                        device=self.device,
+                        dtype=torch.float32,
+                    ),
+                )
 
         embs = []
         for batch in tqdm(batches):

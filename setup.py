@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 URL = "https://github.com/predict-idlab/RR-GCN"
 
 install_requires = ["tqdm", "numpy", "scikit-learn"]

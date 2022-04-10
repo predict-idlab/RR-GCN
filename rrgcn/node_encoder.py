@@ -79,6 +79,8 @@ class NodeEncoder(nn.Module):
         if node_idx is None:
             node_idx = torch.arange(self.num_nodes)
 
+        # use fan_out_seed instead of glorot to make range independent of
+        # the number of nodes
         node_embs = fan_out_seed(
             (self.num_nodes, self.emb_size),
             seed=self.seed,
@@ -112,7 +114,7 @@ class NodeEncoder(nn.Module):
                 # of featured nodes equal to those of unfeatured nodes:
                 #
                 # var(feat @ random_transform) = var(feat) * var(random_transform)
-                #                                * fan_out
+                #                                * num_features
                 #                               (var of prod of indep 0-mean distr +
                 #                                var of sum of indep distr,
                 #                                because of matmul)
@@ -123,7 +125,7 @@ class NodeEncoder(nn.Module):
                 #               var(node_features) / (var(random_tranfsorm) * fan_out)
                 #
                 # we set var(random_transform) equal to var(node_features), thus
-                # var(feat_scaled) should be 1/fan_out
+                # var(feat_scaled) should be 1/num_features
                 random_transform = fan_out_seed(
                     (feat.shape[1], self.emb_size),
                     seed=self.seed + type_id,
@@ -134,7 +136,7 @@ class NodeEncoder(nn.Module):
                 # random transform, divide by fan_out to make sure resulting embs
                 # have the same variance as non-featured nodes
                 node_embs[idx.cpu(), :] = (
-                    (feat.to(self.device) / float(self.emb_size)) @ random_transform
+                    (feat.to(self.device) / float(feat.shape[1])) @ random_transform
                 ).cpu()
 
         # Generate initital node embeddings on CPU and only transfer

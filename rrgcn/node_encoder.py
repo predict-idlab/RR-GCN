@@ -3,7 +3,7 @@ from typing import Dict, Optional, Tuple, Union
 import torch
 from torch import nn
 
-from .util import glorot_seed, uniform_seed
+from .util import fan_out_seed
 
 
 class NodeEncoder(nn.Module):
@@ -12,7 +12,6 @@ class NodeEncoder(nn.Module):
         emb_size: int,
         num_nodes: int,
         seed: int = 42,
-        init_mode: str = "uniform",
         device: Union[torch.device, str] = "cuda",
     ):
         """Random (untrained) node encoder for the initial node embeddings,
@@ -34,11 +33,6 @@ class NodeEncoder(nn.Module):
                 Seed used to generate random transformations (fully characterizes the
                 embedder). Defaults to 42.
 
-            init_mode (str, optional):
-                Initialization for node embeddings. One of "glorot" (based on
-                fan-in, i.e. number of nodes, and fan-out) or
-                "uniform" (between -1 and 1). Defaults to "uniform".
-
             device (Union[torch.device, str], optional):
                 PyTorch device to calculate embeddings on. Defaults to "cuda".
         """
@@ -47,7 +41,6 @@ class NodeEncoder(nn.Module):
         self.device = device
         self.seed = seed
         self.num_nodes = num_nodes
-        self.init_fn = glorot_seed if init_mode == "glorot" else uniform_seed
 
     def forward(
         self,
@@ -86,7 +79,7 @@ class NodeEncoder(nn.Module):
         if node_idx is None:
             node_idx = torch.arange(self.num_nodes)
 
-        node_embs = self.init_fn(
+        node_embs = fan_out_seed(
             (self.num_nodes, self.emb_size),
             seed=self.seed,
             device="cpu",
@@ -115,14 +108,33 @@ class NodeEncoder(nn.Module):
                     + "as many elements as there are feature vectors"
                 )
 
-                random_transform = glorot_seed(
+                # Use fan_out_seed instead of glorot to easily make the variance
+                # of featured nodes equal to those of unfeatured nodes:
+                #
+                # var(feat @ random_transform) = var(feat) * var(random_transform)
+                #                                * fan_out
+                #                               (var of prod of indep 0-mean distr +
+                #                                var of sum of indep distr,
+                #                                because of matmul)
+                #
+                # we want to scale feat such that
+                #   var(feat_scaled @ random_transform) == var(node_features)
+                # so: var(feat_scaled) =
+                #               var(node_features) / (var(random_tranfsorm) * fan_out)
+                #
+                # we set var(random_transform) equal to var(node_features), thus
+                # var(feat_scaled) should be 1/fan_out
+                random_transform = fan_out_seed(
                     (feat.shape[1], self.emb_size),
                     seed=self.seed + type_id,
                     device=self.device,
                 )
 
+                # Here, features are assumed to be normalized. Before matmul with
+                # random transform, divide by fan_out to make sure resulting embs
+                # have the same variance as non-featured nodes
                 node_embs[idx.cpu(), :] = (
-                    feat.to(self.device) @ random_transform
+                    (feat.to(self.device) / float(self.emb_size)) @ random_transform
                 ).cpu()
 
         # Generate initital node embeddings on CPU and only transfer

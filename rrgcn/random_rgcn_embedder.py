@@ -180,8 +180,8 @@ class RRGCNEmbedder(torch.nn.Module):
         batch_size: int = 0,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_features_scalers: Optional[
-            Union[Dict[int, sklearn.base.TransformerMixin], str]
-        ] = None,
+            Union[Dict[int, sklearn.preprocessing.StandardScaler], str]
+        ] = "standard",
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
     ) -> torch.Tensor:
@@ -217,14 +217,13 @@ class RRGCNEmbedder(torch.nn.Module):
                 The node indices used to specify the locations of literal nodes
                 should be included in `idx` (if supplied).
 
-           node_features_scalers (Union[Dict[int, sklearn.base.TransformerMixin], str]
-           , optional):
+           node_features_scalers (Union[Dict[int, sklearn.preprocessing.StandardScaler]
+           , str], optional):
                 Dictionary with featured node type identifiers as keys, and sklearn
                 scalers as values. If scalers are not fit, they will be fit on the data.
                 The fit scalers can be retrieved using `.get_last_fit_scalers()`.
-                Can also be one of "standard", "minmax" as shorthand for
-                unfitted StandardScalers/MinMaxScalers (between -1 and 1)
-                for every type. If None, no scaling is applied. Defaults to None.
+                Can also be "standard" as shorthand for an unfitted StandardScaler.
+                If None, no scaling is applied. Defaults to "standard".
 
             idx (torch.Tensor, optional):
                 Node indices to extract embeddings for (e.g. indices for
@@ -270,7 +269,7 @@ class RRGCNEmbedder(torch.nn.Module):
                 )
 
                 kwargs = (
-                    {"feature_range"(-1, 1)}
+                    {"feature_range": (-1, 1)}
                     if node_features_scalers == "minmax"
                     else {}
                 )
@@ -280,6 +279,7 @@ class RRGCNEmbedder(torch.nn.Module):
                 }
             else:
                 self.node_features_scalers = deepcopy(node_features_scalers)
+
             for type_id, (typed_idx, feat) in node_features.items():
 
                 if not hasattr(normalized_node_features[type_id], "n_features_in_"):

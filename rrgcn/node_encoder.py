@@ -122,7 +122,8 @@ class NodeEncoder(nn.Module):
                 # we want to scale feat such that
                 #   var(feat_scaled @ random_transform) == var(node_features)
                 # so: var(feat_scaled) =
-                #               var(node_features) / (var(random_tranfsorm) * fan_out)
+                #               var(node_features) /
+                #               (var(random_tranfsorm) * num_features)
                 #
                 # we set var(random_transform) equal to var(node_features), thus
                 # var(feat_scaled) should be 1/num_features
@@ -133,7 +134,7 @@ class NodeEncoder(nn.Module):
                 )
 
                 # Here, features are assumed to be normalized. Before matmul with
-                # random transform, divide by fan_out to make sure resulting embs
+                # random transform, divide by fan_in to make sure resulting embs
                 # have the same variance as non-featured nodes
                 node_embs[idx.cpu(), :] = (
                     (feat.to(self.device) / float(feat.shape[1])) @ random_transform

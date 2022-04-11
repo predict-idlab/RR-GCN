@@ -83,11 +83,11 @@ def uniform_seed(
     """
     torch.manual_seed(seed)
     a = torch.zeros(shape, device=device, dtype=dtype)
-    uniform(1, a)
+    torch.nn.init.uniform_(a, a=-1, b=1)
     return a
 
 
-def fan_out_seed(
+def fan_out_uniform_seed(
     shape: Tuple,
     device: Union[torch.device, str] = "cuda",
     seed: int = 42,
@@ -114,5 +114,36 @@ def fan_out_seed(
     """
     torch.manual_seed(seed)
     a = torch.zeros(shape, device=device, dtype=dtype)
-    uniform(1 / float(shape[1]), a)
+    torch.nn.init.uniform_(a, a=-1 / shape[1], b=1 / shape[1])
+    return a
+
+
+def fan_out_normal_seed(
+    shape: Tuple,
+    device: Union[torch.device, str] = "cuda",
+    seed: int = 42,
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """Randomly generates a tensor based on a seed and normal initialization
+    with std 1/fan_out.
+
+    Args:
+        shape (Tuple):
+            Desired shape of the tensor.
+
+        device (torch.device or str, optional):
+            Device to generate tensor on. Defaults to "cuda".
+
+        seed (int, optional):
+            The seed. Defaults to 42.
+
+        dtype (torch.dtype, optional):
+            Tensor type. Defaults to torch.float32.
+
+    Returns:
+        torch.Tensor: The randomly generated tensor
+    """
+    torch.manual_seed(seed)
+    a = torch.zeros(shape, device=device, dtype=dtype)
+    torch.nn.init.normal_(a, std=1 / shape[1])
     return a

@@ -3,7 +3,7 @@ from typing import Dict, Optional, Tuple, Union
 import torch
 from torch import nn
 
-from .util import fan_out_seed
+from .util import fan_out_normal_seed
 
 
 class NodeEncoder(nn.Module):
@@ -81,7 +81,7 @@ class NodeEncoder(nn.Module):
 
         # use fan_out_seed instead of glorot to make range independent of
         # the number of nodes
-        node_embs = fan_out_seed(
+        node_embs = fan_out_normal_seed(
             (self.num_nodes, self.emb_size),
             seed=self.seed,
             device="cpu",
@@ -127,17 +127,18 @@ class NodeEncoder(nn.Module):
                 #
                 # we set var(random_transform) equal to var(node_features), thus
                 # var(feat_scaled) should be 1/num_features
-                random_transform = fan_out_seed(
+                random_transform = fan_out_normal_seed(
                     (feat.shape[1], self.emb_size),
                     seed=self.seed + type_id,
                     device=self.device,
                 )
 
                 # Here, features are assumed to be normalized. Before matmul with
-                # random transform, divide by fan_in to make sure resulting embs
+                # random transform, divide by sqrt(fan_in) to make sure resulting embs
                 # have the same variance as non-featured nodes
                 node_embs[idx.cpu(), :] = (
-                    (feat.to(self.device) / float(feat.shape[1])) @ random_transform
+                    (feat.to(self.device) / (float(feat.shape[1]) ** (1 / 2)))
+                    @ random_transform
                 ).cpu()
 
         # Generate initital node embeddings on CPU and only transfer

@@ -29,6 +29,7 @@ test_embeddings = embeddings[len(data.train_idx):]
 [Check our documentation for more information](https://rr-gcn.readthedocs.io/en/latest/index.html)
 
 [Example notebook for the AIFB dataset](examples/aifb.ipynb)
+
 [Example notebook for the MUTAG dataset (illustration of numeric literal support)](examples/mutag_literals.ipynb)
 
 ## Installation

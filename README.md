@@ -29,7 +29,7 @@ test_embeddings = embeddings[len(data.train_idx):]
 [Check our documentation for more information](https://rr-gcn.readthedocs.io/en/latest/index.html)
 
 [Example notebook for the AIFB dataset](examples/aifb.ipynb)
-
+[Example notebook for the MUTAG dataset (illustration of numeric literal support)](examples/mutag_literals.ipynb)
 
 ## Installation
 After installing the correct PyG version for your PyTorch/CUDA installation as documented in their [installation instructions](https://github.com/pyg-team/pytorch_geometric#installation), install the RR-GCN package using:

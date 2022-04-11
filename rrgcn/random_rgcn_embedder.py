@@ -180,7 +180,7 @@ class RRGCNEmbedder(torch.nn.Module):
         batch_size: int = 0,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_features_scalers: Optional[
-            Union[Dict[int, sklearn.preprocessing.StandardScaler], str]
+            Union[Dict[int, sklearn.preprocessing], str]
         ] = "standard",
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
@@ -222,7 +222,9 @@ class RRGCNEmbedder(torch.nn.Module):
                 Dictionary with featured node type identifiers as keys, and sklearn
                 scalers as values. If scalers are not fit, they will be fit on the data.
                 The fit scalers can be retrieved using `.get_last_fit_scalers()`.
-                Can also be "standard" as shorthand for an unfitted StandardScaler.
+                Can also be "standard", "robust", "power", "quantile" as shorthands for
+                an unfitted StandardScaler, RobustScaler, PowerTransformer and
+                QuantileTransformer respectively.
                 If None, no scaling is applied. Defaults to "standard".
 
             idx (torch.Tensor, optional):
@@ -261,18 +263,21 @@ class RRGCNEmbedder(torch.nn.Module):
             normalized_node_features = deepcopy(node_features)
 
             if isinstance(node_features_scalers, str):
-                assert node_features_scalers in ["standard", "minmax"]
-                scaler = (
-                    sklearn.preprocessing.StandardScaler
-                    if node_features_scalers == "standard"
-                    else sklearn.preprocessing.MinMaxScaler
-                )
-
-                kwargs = (
-                    {"feature_range": (-1, 1)}
-                    if node_features_scalers == "minmax"
-                    else {}
-                )
+                assert node_features_scalers in [
+                    "standard",
+                    "robust",
+                    "power",
+                    "quantile",
+                ]
+                if node_features_scalers == "standard":
+                    scaler = sklearn.preprocessing.StandardScaler
+                elif node_features_scalers == "robust":
+                    scaler = sklearn.preprocessing.RobustScaler
+                elif node_features_scalers == "power":
+                    scaler = sklearn.preprocessing.PowerTransformer
+                elif node_features_scalers == "quantile":
+                    scaler = sklearn.preprocessing.QuantileTransformer
+                    kwargs = {"output_distribution": "normal"}
 
                 self.node_features_scalers = {
                     k: scaler(**kwargs) for k, _ in node_features.items()

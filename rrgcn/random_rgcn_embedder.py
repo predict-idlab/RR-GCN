@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import Dict, Optional, Tuple, Union
 
 import sklearn
+import sklearn.base
 import sklearn.preprocessing
 import torch
 import torch.nn.functional as F
@@ -180,7 +181,7 @@ class RRGCNEmbedder(torch.nn.Module):
         batch_size: int = 0,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_features_scalers: Optional[
-            Union[Dict[int, sklearn.preprocessing], str]
+            Union[Dict[int, sklearn.base.TransformerMixin], str]
         ] = "standard",
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
@@ -217,7 +218,7 @@ class RRGCNEmbedder(torch.nn.Module):
                 The node indices used to specify the locations of literal nodes
                 should be included in `idx` (if supplied).
 
-           node_features_scalers (Union[Dict[int, sklearn.preprocessing.StandardScaler]
+           node_features_scalers (Union[Dict[int, sklearn.base.TransformerMixin]
            , str], optional):
                 Dictionary with featured node type identifiers as keys, and sklearn
                 scalers as values. If scalers are not fit, they will be fit on the data.

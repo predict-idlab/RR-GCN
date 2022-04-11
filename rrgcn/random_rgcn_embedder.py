@@ -270,6 +270,8 @@ class RRGCNEmbedder(torch.nn.Module):
                     "power",
                     "quantile",
                 ]
+
+                kwargs = {}
                 if node_features_scalers == "standard":
                     scaler = sklearn.preprocessing.StandardScaler
                 elif node_features_scalers == "robust":
@@ -278,7 +280,7 @@ class RRGCNEmbedder(torch.nn.Module):
                     scaler = sklearn.preprocessing.PowerTransformer
                 elif node_features_scalers == "quantile":
                     scaler = sklearn.preprocessing.QuantileTransformer
-                    kwargs = {"output_distribution": "normal"}
+                    kwargs = {**kwargs, "output_distribution": "normal"}
 
                 self.node_features_scalers = {
                     k: scaler(**kwargs) for k, _ in node_features.items()

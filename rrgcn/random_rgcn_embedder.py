@@ -289,8 +289,13 @@ class RRGCNEmbedder(torch.nn.Module):
                 self.node_features_scalers = deepcopy(node_features_scalers)
 
             for type_id, (typed_idx, feat) in node_features.items():
+                if (
+                    type_id not in self.node_features_scalers
+                    or self.node_features_scalers[type_id] is None
+                ):
+                    continue
 
-                if not hasattr(normalized_node_features[type_id], "n_features_in_"):
+                if not hasattr(self.node_features_scalers[type_id], "n_features_in_"):
                     self.node_features_scalers[type_id] = self.node_features_scalers[
                         type_id
                     ].fit(feat)

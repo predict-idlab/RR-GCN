@@ -34,6 +34,8 @@ test_embeddings = embeddings[len(data.train_idx):]
 
 [Example notebook for AM (illustration of numeric & textual literal support)](examples/am_literals.ipynb)
 
+[Example notebook for ogbn-mag (illustration of support for initial node features)](examples/ogbn_mag.ipynb)
+
 ## Installation
 After installing the correct PyG version for your PyTorch/CUDA installation as documented in their [installation instructions](https://github.com/pyg-team/pytorch_geometric#installation), install the RR-GCN package using:
 

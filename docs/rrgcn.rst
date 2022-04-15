@@ -4,7 +4,7 @@ rrgcn package
 Submodules
 ----------
 
-rrgcn.random\_rgcn\_conv module
+RandomRGCNConv
 -------------------------------
 
 .. automodule:: rrgcn.random_rgcn_conv
@@ -12,7 +12,7 @@ rrgcn.random\_rgcn\_conv module
     :undoc-members:
     :show-inheritance:
 
-rrgcn.random\_rgcn\_embedder module
+RRGCNEmbedder
 -----------------------------------
 
 .. automodule:: rrgcn.random_rgcn_embedder
@@ -20,6 +20,21 @@ rrgcn.random\_rgcn\_embedder module
     :undoc-members:
     :show-inheritance:
 
+NodeEncoder
+-----------------------------------
+
+.. automodule:: rrgcn.node_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+util
+-----------------------------------
+
+.. automodule:: rrgcn.util
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------

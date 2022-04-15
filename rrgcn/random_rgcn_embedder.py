@@ -1,5 +1,9 @@
-from typing import Optional, Union
+from copy import deepcopy
+from typing import Dict, Optional, Tuple, Union
 
+import sklearn
+import sklearn.base
+import sklearn.preprocessing
 import torch
 import torch.nn.functional as F
 import torch_sparse
@@ -7,28 +11,9 @@ from torch_geometric.utils.subgraph import k_hop_subgraph
 from torch_sparse import SparseTensor
 from tqdm import tqdm
 
-from .random_rgcn_conv import RandomRGCNConv, glorot_seed
-
-
-def calc_ppv(
-    x: torch.Tensor, adj_t: Union[torch.Tensor, torch_sparse.SparseTensor]
-) -> torch.Tensor:
-    """Calculates 1-hop proportion of positive values per representation dimension
-
-    Args:
-        x (torch.Tensor):
-            Input node representations.
-
-        adj_t (torch.Tensor or torch_sparse.SparseTensor):
-            Adjacency matrix. Either in 2-row head/tail format or using a SparseTensor.
-
-    Returns:
-        torch.Tensor: Proportion of positive values features.
-    """
-    if isinstance(adj_t, torch.Tensor):
-        adj_t = SparseTensor(row=adj_t[0], col=adj_t[1]).to(x.device).t()
-    adj_t = adj_t.set_value(None, layout=None)
-    return torch_sparse.matmul(adj_t, (x > 0).float(), reduce="mean")
+from .node_encoder import NodeEncoder
+from .random_rgcn_conv import RandomRGCNConv
+from .util import calc_ppv
 
 
 class RRGCNEmbedder(torch.nn.Module):
@@ -81,10 +66,15 @@ class RRGCNEmbedder(torch.nn.Module):
             for _ in range(num_layers)
         ]
 
+        self.ne = NodeEncoder(
+            emb_size=emb_size, num_nodes=num_nodes, seed=self.seed, device=device
+        )
+
     def forward(
         self,
         edge_index: Union[torch.Tensor, torch_sparse.SparseTensor],
         edge_type: Optional[torch.Tensor] = None,
+        node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_idx: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Calculates node embeddings for a (sub)graph specified by
@@ -98,6 +88,20 @@ class RRGCNEmbedder(torch.nn.Module):
             edge_type (torch.Tensor, optional):
                 Types for each edge in `edge_index`. Can be omitted if `edge_index` is
                 a SparseTensor where types are included as values. Defaults to None.
+
+            node_features (Dict[int, Tuple[torch.Tensor, torch.Tensor]], optional):
+                Dictionary with featured node type identifiers as keys, and tuples
+                of node indices and initial features as values.
+
+                For example, if nodes `[3, 5, 7]` are literals of type `5`
+                with numeric values `[0.7, 0.1, 0.5]`, `node_features` should be:
+                `{5: (torch.tensor([3, 5, 7]), torch.tensor([0.7], [0.1], [0.5]))}`
+
+                Featured nodes are not limited to numeric literals, e.g. word embeddings
+                can also be passed for string literals.
+
+                The node indices used to specify the locations of literal nodes
+                should be included in `node_idx` (if supplied).
 
             node_idx (torch.Tensor, optional):
                 Useful for batched embedding calculation. Mapping from node indices
@@ -116,14 +120,9 @@ class RRGCNEmbedder(torch.nn.Module):
         if edge_type is not None:
             kwargs = {**kwargs, "edge_type": edge_type}
 
-        # Generate initital node embeddings on CPU and only transfer
-        # necessary nodes to GPU
-        x = glorot_seed(
-            (self.num_nodes, self.emb_size),
-            seed=self.seed,
-            device="cpu",
-        )[node_idx, :]
-        x = self.layers[0](x.to(self.device), **kwargs)
+        x = self.ne(node_features, node_idx)
+
+        x = self.layers[0](x, **kwargs)
 
         if self.ppv:
             # Calculate proportion of positive values in 1-hop neighbourhood
@@ -165,12 +164,25 @@ class RRGCNEmbedder(torch.nn.Module):
 
         return x
 
+    def get_last_fit_scalers(self) -> Dict[int, sklearn.base.TransformerMixin]:
+        """If during the last call to `embeddings()`, scalers were fit,
+        returns the per featured node fitted sklearn scalers.
+
+        Returns:
+            Dict[int, sklearn.base.TransformerMixin]: the fitted scalers
+        """
+        return self.node_features_scalers
+
     @torch.no_grad()
     def embeddings(
         self,
         edge_index: Union[torch.Tensor, torch_sparse.SparseTensor],
         edge_type: Optional[torch.Tensor] = None,
         batch_size: int = 0,
+        node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
+        node_features_scalers: Optional[
+            Union[Dict[int, sklearn.base.TransformerMixin], str]
+        ] = "standard",
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
     ) -> torch.Tensor:
@@ -191,6 +203,30 @@ class RRGCNEmbedder(torch.nn.Module):
                 included nodes is extracted and used for message passing. If
                 `batch_size` is 0, all nodes of interest are contained in a
                 single batch. Defaults to 0.
+
+            node_features (Dict[int, Tuple[torch.Tensor, torch.Tensor]], optional):
+                Dictionary with featured node type identifiers as keys, and tuples
+                of node indices and initial features as values.
+
+                For example, if nodes `[3, 5, 7]` are literals of type `5`
+                with numeric values `[0.7, 0.1, 0.5]`, `node_features` should be:
+                `{5: (torch.tensor([3, 5, 7]), torch.tensor([0.7], [0.1], [0.5]))}`
+
+                Featured nodes are not limited to numeric literals, e.g. word embeddings
+                can also be passed for string literals.
+
+                The node indices used to specify the locations of literal nodes
+                should be included in `idx` (if supplied).
+
+           node_features_scalers (Union[Dict[int, sklearn.base.TransformerMixin]
+           , str], optional):
+                Dictionary with featured node type identifiers as keys, and sklearn
+                scalers as values. If scalers are not fit, they will be fit on the data.
+                The fit scalers can be retrieved using `.get_last_fit_scalers()`.
+                Can also be "standard", "robust", "power", "quantile" as shorthands for
+                an unfitted StandardScaler, RobustScaler, PowerTransformer and
+                QuantileTransformer respectively.
+                If None, no scaling is applied. Defaults to "standard".
 
             idx (torch.Tensor, optional):
                 Node indices to extract embeddings for (e.g. indices for
@@ -223,6 +259,56 @@ class RRGCNEmbedder(torch.nn.Module):
             # Split nodes to generate embeddings for into batches
             batches = all_nodes.split(batch_size)
 
+        normalized_node_features = node_features
+        if node_features is not None and node_features_scalers is not None:
+            normalized_node_features = deepcopy(node_features)
+
+            if isinstance(node_features_scalers, str):
+                assert node_features_scalers in [
+                    "standard",
+                    "robust",
+                    "power",
+                    "quantile",
+                ]
+
+                kwargs = {}
+                if node_features_scalers == "standard":
+                    scaler = sklearn.preprocessing.StandardScaler
+                elif node_features_scalers == "robust":
+                    scaler = sklearn.preprocessing.RobustScaler
+                elif node_features_scalers == "power":
+                    scaler = sklearn.preprocessing.PowerTransformer
+                elif node_features_scalers == "quantile":
+                    scaler = sklearn.preprocessing.QuantileTransformer
+                    kwargs = {**kwargs, "output_distribution": "normal"}
+
+                self.node_features_scalers = {
+                    k: scaler(**kwargs) for k, _ in node_features.items()
+                }
+            else:
+                self.node_features_scalers = deepcopy(node_features_scalers)
+
+            for type_id, (typed_idx, feat) in node_features.items():
+                if (
+                    type_id not in self.node_features_scalers
+                    or self.node_features_scalers[type_id] is None
+                ):
+                    continue
+
+                if not hasattr(self.node_features_scalers[type_id], "n_features_in_"):
+                    self.node_features_scalers[type_id] = self.node_features_scalers[
+                        type_id
+                    ].fit(feat)
+
+                normalized_node_features[type_id] = (
+                    typed_idx,
+                    torch.tensor(
+                        self.node_features_scalers[type_id].transform(feat),
+                        device=self.device,
+                        dtype=torch.float32,
+                    ),
+                )
+
         embs = []
         for batch in tqdm(batches):
             if subgraph:
@@ -249,9 +335,24 @@ class RRGCNEmbedder(torch.nn.Module):
                 .t()
             )
 
+            sub_node_features = None
+            if node_features is not None:
+                sub_node_features = {}
+                for type_id, (typed_idx, feat) in normalized_node_features.items():
+                    mask = torch.isin(typed_idx.to(nodes.device), nodes)
+                    selected_idx = typed_idx[mask]
+                    if selected_idx.numel() == 0:
+                        continue
+
+                    sub_node_features[type_id] = (selected_idx, feat[mask])
+
             # Calculate embeddings for all nodes participating in batch and then select
             # the queried nodes
-            emb = self(adj_t, node_idx=nodes)[mapping].detach().cpu()
+            emb = (
+                self(adj_t, node_idx=nodes, node_features=sub_node_features)[mapping]
+                .detach()
+                .cpu()
+            )
             embs.append(emb)
 
         return torch.concat(embs)

@@ -7,39 +7,10 @@ import torch
 from torch import Tensor
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.conv.rgcn_conv import masked_edge_index
-from torch_geometric.nn.inits import glorot
 from torch_geometric.typing import Adj, OptTensor
 from torch_sparse import SparseTensor, matmul
 
-
-def glorot_seed(
-    shape: Tuple,
-    device: Union[torch.device, str] = "cuda",
-    seed: int = 42,
-    dtype: torch.dtype = torch.float32,
-) -> torch.Tensor:
-    """Randomly generates a tensor based on a seed and Glorot initialization.
-
-    Args:
-        shape (Tuple):
-            Desired shape of the tensor.
-
-        device (torch.device or str, optional):
-            Device to generate tensor on. Defaults to "cuda".
-
-        seed (int, optional):
-            The seed. Defaults to 42.
-
-        dtype (torch.dtype, optional):
-            Tensor type. Defaults to torch.float32.
-
-    Returns:
-        torch.Tensor: The randomly generated tensor
-    """
-    torch.manual_seed(seed)
-    a = torch.zeros(shape, device=device, dtype=dtype)
-    glorot(a)
-    return a
+from .util import glorot_seed
 
 
 class RandomRGCNConv(MessagePassing):

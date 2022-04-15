@@ -1,8 +1,5 @@
-rrgcn package
+RR-GCN
 =============
-
-Submodules
-----------
 
 RandomRGCNConv
 -------------------------------
@@ -32,14 +29,6 @@ util
 -----------------------------------
 
 .. automodule:: rrgcn.util
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: rrgcn
     :members:
     :undoc-members:
     :show-inheritance:

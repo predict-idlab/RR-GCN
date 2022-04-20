@@ -27,6 +27,28 @@ def calc_ppv(
     return torch_sparse.matmul(adj_t, (x > 0).float(), reduce="mean")
 
 
+def avg_one_hop(
+    x: torch.Tensor,
+    adj_t: Union[torch.Tensor, torch_sparse.SparseTensor],
+) -> torch.Tensor:
+    """Calculates average of 1-hop neigbours for given nodes
+
+    Args:
+        x (torch.Tensor):
+            Input node representations.
+
+        adj_t (torch.Tensor or torch_sparse.SparseTensor):
+            Adjacency matrix. Either in 2-row head/tail format or using a SparseTensor.
+
+    Returns:
+        torch.Tensor: Averages of 1-hop neighbour representations
+    """
+    if isinstance(adj_t, torch.Tensor):
+        adj_t = SparseTensor(row=adj_t[0], col=adj_t[1]).to(x.device).t()
+    adj_t = adj_t.set_value(None, layout=None)
+    return torch_sparse.matmul(adj_t, x, reduce="mean")
+
+
 def glorot_seed(
     shape: Tuple,
     device: Union[torch.device, str] = "cuda",

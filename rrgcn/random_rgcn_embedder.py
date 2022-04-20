@@ -76,6 +76,7 @@ class RRGCNEmbedder(torch.nn.Module):
         edge_type: Optional[torch.Tensor] = None,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_idx: Optional[torch.Tensor] = None,
+        blank_node_idx: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Calculates node embeddings for a (sub)graph specified by
         a typed adjacency matrix
@@ -108,6 +109,11 @@ class RRGCNEmbedder(torch.nn.Module):
                 used in the given (sub)graph's adjancency matrix to node indices in the
                 original graph. Defaults to None.
 
+            blank_node_idx (torch.Tensor, optional):
+                Indices of blank nodes. If given, the initial representations of these
+                nodes will be the average of their one-hop neighbours.
+                Defaults to None.
+
         Returns:
             torch.Tensor: Node embeddings for given (sub)graph.
         """
@@ -120,7 +126,12 @@ class RRGCNEmbedder(torch.nn.Module):
         if edge_type is not None:
             kwargs = {**kwargs, "edge_type": edge_type}
 
-        x = self.ne(node_features, node_idx)
+        x = self.ne(
+            node_features,
+            node_idx,
+            blank_node_idx=blank_node_idx,
+            edge_index=edge_index,
+        )
 
         x = self.layers[0](x, **kwargs)
 
@@ -185,6 +196,7 @@ class RRGCNEmbedder(torch.nn.Module):
         ] = "standard",
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
+        blank_node_idx: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Generate embeddings for a given set of nodes of interest.
 
@@ -237,6 +249,11 @@ class RRGCNEmbedder(torch.nn.Module):
                 message passing. This is useful for small graphs where embeddings can be
                 extracted full-batch and calculating the subgraph comes with a
                 significant overhead. Defaults to True.
+
+            blank_node_idx (torch.Tensor, optional):
+                Indices of blank nodes. If given, the initial representations of these
+                nodes will be the average of their one-hop neighbours.
+                Defaults to None.
 
         Returns:
             torch.Tensor: Node embeddings for given nodes of interest
@@ -345,10 +362,23 @@ class RRGCNEmbedder(torch.nn.Module):
 
                     sub_node_features[type_id] = (selected_idx, feat[mask])
 
+            sub_blank_node_idx = None
+            if blank_node_idx is not None:
+                mask = torch.isin(blank_node_idx.to(nodes.device), nodes)
+                selected_idx = blank_node_idx[mask]
+                if selected_idx.numel() == 0:
+                    continue
+                sub_blank_node_idx = selected_idx
+
             # Calculate embeddings for all nodes participating in batch and then select
             # the queried nodes
             emb = (
-                self(adj_t, node_idx=nodes, node_features=sub_node_features)[mapping]
+                self(
+                    adj_t,
+                    node_idx=nodes,
+                    node_features=sub_node_features,
+                    blank_node_idx=sub_blank_node_idx,
+                )[mapping]
                 .detach()
                 .cpu()
             )

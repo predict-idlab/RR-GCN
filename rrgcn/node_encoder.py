@@ -2,8 +2,9 @@ from typing import Dict, Optional, Tuple, Union
 
 import torch
 from torch import nn
+from torch_sparse import SparseTensor
 
-from .util import fan_out_normal_seed
+from .util import avg_one_hop, fan_out_normal_seed
 
 
 class NodeEncoder(nn.Module):
@@ -46,6 +47,8 @@ class NodeEncoder(nn.Module):
         self,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_idx: Optional[torch.Tensor] = None,
+        blank_node_idx: Optional[torch.Tensor] = None,
+        edge_index: Optional[Union[torch.Tensor, SparseTensor]] = None,
     ) -> torch.Tensor:
         """Encodes nodes into an initial (random) representation, with nodes with
         intial features (e.g. numeric literals) taken into account.
@@ -72,6 +75,13 @@ class NodeEncoder(nn.Module):
                 used in the given (sub)graph's adjancency matrix to node indices in the
                 original graph. Defaults to None.
 
+            blank_node_idx (torch.Tensor, optional):
+                Indices of blank nodes. If given, the initial representations of these
+                nodes will be the average of their one-hop neighbours.
+                Defaults to None.
+
+            edge_index (torch.Tensor or torch_sparse.SparseTensor, optional):
+                Required when supplying blank node indices. Defaults to None.
 
         Returns:
             torch.Tensor: Initial node representations
@@ -140,6 +150,19 @@ class NodeEncoder(nn.Module):
                     (feat.to(self.device) / (float(feat.shape[1]) ** (1 / 2)))
                     @ random_transform
                 ).cpu()
+
+        # blank nodes
+        if blank_node_idx is not None:
+            assert edge_index is not None
+
+            mapping = torch.full((self.num_nodes,), -1, dtype=torch.long, device="cpu")
+            mapping[node_idx.cpu()] = torch.arange(node_idx.shape[0])
+
+            assert not (mapping[blank_node_idx.cpu()] == -1).any()
+
+            node_embs[blank_node_idx.cpu(), :] = avg_one_hop(
+                node_embs[node_idx.cpu(), :], edge_index.cpu()
+            )[mapping[blank_node_idx.cpu()], :]
 
         # Generate initital node embeddings on CPU and only transfer
         # necessary nodes to GPU once masked

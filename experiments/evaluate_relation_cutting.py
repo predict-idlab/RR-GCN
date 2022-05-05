@@ -169,7 +169,11 @@ for name in ent_names + kgb_names:
     for rel, i in data.relations_dict.items():
         if (
             str(rel) in relation_importances[name]
-            and (relation_importances[name][str(rel)] / max(list(relation_importances[name].values()))) > 0.6
+            and (
+                relation_importances[name][str(rel)]
+                / max(list(relation_importances[name].values()))
+            )
+            > 0.6
         ):
             kept_rels.append(2 * i)
             kept_rels.append(2 * i + 1)
@@ -217,8 +221,11 @@ for name in ent_names + kgb_names:
 
         for s in emb_seeds:
             # print(name, ppv, s)
-            torch.cuda.reset_peak_memory_stats(device=device)
-            before_mem = torch.cuda.max_memory_allocated(device=device)
+            if device != "cpu":
+                torch.cuda.reset_peak_memory_stats(device=device)
+                before_mem = torch.cuda.max_memory_allocated(device=device)
+            else:
+                before_mem = 0
 
             if results_df is not None:
                 already_calculated = results_df[
@@ -248,7 +255,11 @@ for name in ent_names + kgb_names:
             }
             estimated_mem_usage = embedder.estimated_peak_memory_usage(**kwargs)
 
-            free_mem = torch.cuda.mem_get_info(torch.cuda.device(device))[0]
+            if device != "cpu":
+                free_mem = torch.cuda.mem_get_info(torch.cuda.device(device))[0]
+            else:
+                free_mem = float("inf")
+
             if estimated_mem_usage > free_mem:
                 results.append(
                     {
@@ -267,7 +278,12 @@ for name in ent_names + kgb_names:
                 )
             else:
                 embs = embedder.embeddings(**kwargs)
-                peak_mem = torch.cuda.max_memory_allocated(device=device) - before_mem
+                if device != "cpu":
+                    peak_mem = (
+                        torch.cuda.max_memory_allocated(device=device) - before_mem
+                    )
+                else:
+                    peak_mem = 0
                 train_embs = embs[: len(data.train_idx)]
                 test_embs = embs[len(data.train_idx) :]
 
@@ -313,7 +329,8 @@ for name in ent_names + kgb_names:
 
             del embedder
             gc.collect()
-            torch.cuda.synchronize()
-            torch.cuda.empty_cache()
+            if device != "cpu":
+                torch.cuda.synchronize()
+                torch.cuda.empty_cache()
             results_df = pd.DataFrame(results)
             results_df.to_csv(str(results_file), index=False)

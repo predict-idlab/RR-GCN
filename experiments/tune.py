@@ -70,8 +70,11 @@ for name in ent_names + kgb_names:
         for e in embedding_sizes:
             for l in layers:
                 for ppv in ppvs:
-                    torch.cuda.reset_peak_memory_stats(device=device)
-                    before_mem = torch.cuda.max_memory_allocated(device=device)
+                    if device != "cpu":
+                        torch.cuda.reset_peak_memory_stats(device=device)
+                        before_mem = torch.cuda.max_memory_allocated(device=device)
+                    else:
+                        before_mem = 0
                     if results_df is not None:
                         already_calculated = results_df[
                             (results_df.dataset == name)
@@ -84,10 +87,13 @@ for name in ent_names + kgb_names:
                         if already_calculated > 0:
                             continue
 
-                    free_mem = (
-                        torch.cuda.get_device_properties(0).total_memory
-                        - get_gpu_memory_map()[0]
-                    )
+                    if device != "cpu":
+                        free_mem = (
+                            torch.cuda.get_device_properties(0).total_memory
+                            - get_gpu_memory_map()[0]
+                        )
+                    else:
+                        free_mem = 0
 
                     embedder = RRGCNEmbedder(
                         num_nodes=data.num_nodes,
@@ -132,9 +138,13 @@ for name in ent_names + kgb_names:
                         )
                     else:
                         embs = embedder.embeddings(**kwargs)
-                        peak_mem = (
-                            torch.cuda.max_memory_allocated(device=device) - before_mem
-                        )
+                        if device != "cpu":
+                            peak_mem = (
+                                torch.cuda.max_memory_allocated(device=device)
+                                - before_mem
+                            )
+                        else:
+                            peak_mem = 0
                         train_embs = embs[: len(train_idx)]
                         val_embs = embs[len(train_idx) :]
 
@@ -191,7 +201,8 @@ for name in ent_names + kgb_names:
 
                     del embedder
                     gc.collect()
-                    torch.cuda.synchronize()
-                    torch.cuda.empty_cache()
+                    if device != "cpu":
+                        torch.cuda.synchronize()
+                        torch.cuda.empty_cache()
                     results_df = pd.DataFrame(results)
                     results_df.to_csv(str(results_file), index=False)

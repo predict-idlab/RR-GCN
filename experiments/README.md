@@ -1,6 +1,6 @@
 # Steps to reproduce paper results
 ## Prerequisites
-For these scripts to work, the RR-GCN package needs to be installed (`pip install -e .` in the parent directory) and this directory needs to be the working directory. 
+For these scripts to work, the RR-GCN package needs to be installed (`pip install -e .` in the parent directory) and this directory needs to be the working directory. Note that node classification results will only exactly match those reported in the paper as CatBoost on CPU and GPU produce different results.
 
 1. Make sure `git-lfs` is installed and working on your machine
 2. Edit [`dataset_root.py`](dataset_root.py) and set `root` equal to a path where datasets can be downloaded

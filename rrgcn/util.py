@@ -83,7 +83,7 @@ def uniform_seed(
     """
     torch.manual_seed(seed)
     a = torch.zeros(shape, device=device, dtype=dtype)
-    torch.nn.init.uniform_(a, a=-1, b=1)
+    torch.nn.init.uniform_(a, -1, 1)
     return a
 
 
@@ -114,7 +114,7 @@ def fan_out_uniform_seed(
     """
     torch.manual_seed(seed)
     a = torch.zeros(shape, device=device, dtype=dtype)
-    torch.nn.init.uniform_(a, a=-1 / shape[1], b=1 / shape[1])
+    torch.nn.init.uniform_(a, -1 / shape[1], 1 / shape[1])
     return a
 
 
@@ -145,5 +145,5 @@ def fan_out_normal_seed(
     """
     torch.manual_seed(seed)
     a = torch.zeros(shape, device=device, dtype=dtype)
-    torch.nn.init.normal_(a, std=1 / shape[1])
+    torch.nn.init.normal_(a, 0.0, 1 / shape[1])
     return a

@@ -200,7 +200,7 @@ class KGBench(InMemoryDataset):
         return (Path(root) / "kgbench").exists()
 
     def download(self, root):
-        os.system(f"git lfs clone {str(Path(root) / 'kgbench')}")
+        os.system(f"git lfs clone https://github.com/pbloem/kgbench-data.git {str(Path(root) / 'kgbench')}")
 
     def load(self, root, name):
         sys.path.append(str(Path(root) / "kgbench"))

@@ -41,6 +41,9 @@ After installing the correct PyG version for your PyTorch/CUDA installation as d
 
 `pip install rrgcn`
 
+## Full paper results & reproduction
+See [experiments documentation](experiments/)
+
 ## Cite
 ```
 @article{degraeve2022rgcn,

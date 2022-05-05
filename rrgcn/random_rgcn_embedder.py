@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import Dict, Optional, Tuple, Union
 
+import pandas as pd
 import sklearn
 import sklearn.base
 import sklearn.preprocessing
@@ -26,6 +27,7 @@ class RRGCNEmbedder(torch.nn.Module):
         device: Union[torch.device, str] = "cuda",
         ppv: bool = True,
         seed: int = 42,
+        min_node_degree: int = 0,
     ):
         """Random Relational Graph Convolutional Network Knowledge Graph Embedder.
 
@@ -52,6 +54,11 @@ class RRGCNEmbedder(torch.nn.Module):
             seed (int, optional):
                 Seed used to generate random transformations (fully characterizes the
                 embedder). Defaults to 42.
+
+            min_node_degree (int, optional):
+                If set, embedder first remove all nodes with a degree lower
+                than the given argument from the graph before taking subgraph.
+                Defaults to 0.
         """
         super().__init__()
         self.device = device
@@ -60,6 +67,7 @@ class RRGCNEmbedder(torch.nn.Module):
         self.emb_size = emb_size
         self.seed = seed
         self.num_layers = num_layers
+        self.min_node_degree = min_node_degree
 
         self.layers = [
             RandomRGCNConv(emb_size, emb_size, num_relations, seed=seed)
@@ -172,6 +180,78 @@ class RRGCNEmbedder(torch.nn.Module):
             Dict[int, sklearn.base.TransformerMixin]: the fitted scalers
         """
         return self.node_features_scalers
+
+    def estimated_peak_memory_usage(
+        self,
+        edge_index: Union[torch.Tensor, torch_sparse.SparseTensor],
+        batch_size: int = 0,
+        idx: Optional[torch.Tensor] = None,
+        subgraph: bool = True,
+        **kwargs
+    ):
+        """Calculates the theoretical peak memory usage for a set of arguments
+        given to `RRGCNEmbedder.embeddings()`
+
+        Args:
+            edge_index (torch.Tensor or torch_sparse.SparseTensor):
+                Adjacency matrix. Either in 2-row head/tail format or using a
+                SparseTensor.
+
+            edge_type (torch.Tensor, optional):
+                Types for each edge in `edge_index`. Can be omitted if `edge_index` is a
+                SparseTensor where types are included as values. Defaults to None.
+
+            batch_size (int, optional):
+                Number of nodes in a single batch. For every batch, a subgraph with
+                number of hops equal to the number of graph convolutions around the
+                included nodes is extracted and used for message passing. If
+                `batch_size` is 0, all nodes of interest are contained in a
+                single batch. Defaults to 0.
+
+            idx (torch.Tensor, optional):
+                Node indices to extract embeddings for (e.g. indices for
+                train- and test entities). If None, extracts embeddings for all nodes
+                in the graph. Defaults to None.
+
+            subgraph (bool, optional):
+                If False, the function does not take a k-hop subgraph before executing
+                message passing. This is useful for small graphs where embeddings can be
+                extracted full-batch and calculating the subgraph comes with a
+                significant overhead. Defaults to True.
+
+        Returns:
+            int: Theoretical peak memory usage in number of bytes
+        """
+        if subgraph:
+            if idx is None:
+                # Generate embeddings for all nodes
+                all_nodes = torch.arange(edge_index.max() + 1)
+            else:
+                # Only generate embeddings for subset of nodes
+                # (e.g. labelled train + test nodes)
+                all_nodes = idx
+
+            if batch_size < 1:
+                # Full-batch
+                batches = [all_nodes]
+            else:
+                # Split nodes to generate embeddings for into batches
+                batches = all_nodes.split(batch_size)
+
+            num_nodes_per_batch = []
+            for batch in batches:
+                # Calculate batch subgraph with smaller number of nodes and edges
+                nodes, _, _, _ = k_hop_subgraph(
+                    batch, self.num_layers, edge_index, relabel_nodes=True
+                )
+                num_nodes_per_batch.append(len(nodes))
+
+            max_num_nodes = max(num_nodes_per_batch)
+        else:
+            max_num_nodes = edge_index.max() + 1
+
+        factor = 4  # 4 if self.ppv else 3
+        return factor * max_num_nodes * self.emb_size * 4  # in number of bytes
 
     @torch.no_grad()
     def embeddings(
@@ -310,18 +390,37 @@ class RRGCNEmbedder(torch.nn.Module):
 
         embs = []
         for batch in tqdm(batches):
+            if self.min_node_degree > 0:
+                degrees = pd.Series(edge_index[0].cpu().numpy()).value_counts()
+                low_degree = set(
+                    degrees[degrees < self.min_node_degree].index.to_numpy()
+                )
+                low_degree = torch.tensor(
+                    list(low_degree.difference(set(all_nodes.cpu().numpy())))
+                ).to(edge_index.device)
+
+                degree_mask = ~(
+                    torch.isin(edge_index[0], low_degree)
+                    | torch.isin(edge_index[1], low_degree)
+                ).to(edge_index.device)
+                deg_edge_index = edge_index[:, degree_mask]
+                deg_edge_type = edge_type[degree_mask]
+            else:
+                deg_edge_index = edge_index
+                deg_edge_type = edge_type
+
             if subgraph:
                 # Calculate batch subgraph with smaller number of nodes and edges
                 nodes, sub_edge_index, mapping, edge_preserved = k_hop_subgraph(
-                    batch, self.num_layers, edge_index, relabel_nodes=True
+                    batch, self.num_layers, deg_edge_index, relabel_nodes=True
                 )
-                sub_edge_type = edge_type[edge_preserved]
+                sub_edge_type = deg_edge_type[edge_preserved]
             else:
                 nodes, sub_edge_index, mapping, sub_edge_type = (
                     torch.arange(edge_index.max() + 1),
-                    edge_index,
+                    deg_edge_index,
                     batch,
-                    edge_type,
+                    deg_edge_type,
                 )
 
             adj_t = (

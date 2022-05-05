@@ -9,12 +9,12 @@ from rrgcn import RRGCNEmbedder
 from sklearn.metrics import accuracy_score, f1_score, log_loss
 
 from dataset import NodeClassificationDataset
+from dataset_location import root
 
 seed = 42
 emb_seeds = list(range(10))
 ent_names = ["aifb", "am", "bgs", "mutag"]
 kgb_names = ["dmgfull", "dmg777k", "mdgenre", "amplus", "dblp"]
-root = "/project_scratch/rrgcn_datasets"
 
 tuning_results_file = Path("tuning_results.csv")
 if not tuning_results_file.is_file():

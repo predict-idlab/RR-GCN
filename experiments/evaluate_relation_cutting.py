@@ -9,6 +9,7 @@ from rrgcn import RRGCNEmbedder
 from sklearn.metrics import accuracy_score, f1_score, log_loss
 
 from dataset import NodeClassificationDataset
+from dataset_location import root
 
 seed = 42
 emb_seeds = list(range(10))
@@ -141,7 +142,6 @@ relation_importances = {
         "http://www.w3.org/2004/02/skos/core#related": 0.395839,
     }
 }
-root = "/project_scratch/rrgcn_datasets"
 
 tuning_results_file = Path("tuning_results.csv")
 if not tuning_results_file.is_file():

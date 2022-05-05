@@ -10,6 +10,7 @@ from sklearn.metrics import accuracy_score, f1_score, log_loss
 from sklearn.model_selection import StratifiedKFold
 
 from dataset import NodeClassificationDataset
+from dataset_location import root
 import subprocess
 
 
@@ -29,7 +30,6 @@ n_splits = 5
 emb_seeds = list(range(n_splits))
 ent_names = ["aifb", "am", "mutag", "bgs"]
 kgb_names = ["amplus", "dblp", "dmgfull", "dmg777k", "mdgenre"]
-root = "/project_scratch/rrgcn_datasets"
 
 embedding_sizes = [256, 512, 768, 1024]
 layers = [1, 2, 3, 4, 5]

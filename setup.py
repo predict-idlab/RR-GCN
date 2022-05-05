@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 __version__ = "0.0.2"
 URL = "https://github.com/predict-idlab/RR-GCN"
 
-install_requires = ["tqdm", "numpy", "scikit-learn"]
+install_requires = ["tqdm", "numpy", "scikit-learn", "rdflib"]
 setup(
     name="rrgcn",
     version=__version__,

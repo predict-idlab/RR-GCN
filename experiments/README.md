@@ -6,6 +6,7 @@ For these scripts to work, the RR-GCN package needs to be installed (`pip instal
 2. Edit [`dataset_root.py`](dataset_root.py) and set `root` equal to a path where datasets can be downloaded
 
 ## Node classification
+Either run the shell script [`run_all_node_classification.sh`](run_all_node_classification.sh) and upon completion look in the updated [`tables.ipynb`](tables.ipynb) for new results or follow the following steps:
 1. [`tune.py`](tune.py) to generate validation results for different hyperparameter setups. The resulting validation scores will be saved in [`tuning_results.csv`](tuning_results.csv) (you need to delete the supplied version first if you want to run it yourself).
 2. [`evaluate.py`](evaluate.py) to generate test scores based on the optimal validation hyperparameters. This script requires a complete [`tuning_results.csv`](tuning_results.csv) and saves test performance for both RR-GCN and RR-GCN-PPV in [`evaluation_results.csv`](evaluation_results.csv) (you need to delete the supplied version first if you want to run it yourself).
 3. [`evaluate_degree_cutting.py`](evaluate_degree_cutting.py) to generate results with nodes of degree < 5 removed for AM, AIFB and BGS. This script requires a complete [`tuning_results.csv`](tuning_results.csv) and saves test performance for both RR-GCN and RR-GCN-PPV in [`evaluation_results_degree_cutting.csv`](evaluation_results_degree_cutting.csv) (you need to delete the supplied version first if you want to run it yourself).

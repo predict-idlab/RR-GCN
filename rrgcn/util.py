@@ -125,7 +125,7 @@ def fan_out_normal_seed(
     dtype: torch.dtype = torch.float32,
 ) -> torch.Tensor:
     """Randomly generates a tensor based on a seed and normal initialization
-    with std 1/fan_out.
+    with var 1/fan_out.
 
     Args:
         shape (Tuple):

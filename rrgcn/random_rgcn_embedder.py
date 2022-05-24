@@ -84,6 +84,7 @@ class RRGCNEmbedder(torch.nn.Module):
         edge_type: Optional[torch.Tensor] = None,
         node_features: Optional[Dict[int, Tuple[torch.Tensor, torch.Tensor]]] = None,
         node_idx: Optional[torch.Tensor] = None,
+        node_features_no_transform: list = None,
     ) -> torch.Tensor:
         """Calculates node embeddings for a (sub)graph specified by
         a typed adjacency matrix
@@ -116,6 +117,9 @@ class RRGCNEmbedder(torch.nn.Module):
                 used in the given (sub)graph's adjancency matrix to node indices in the
                 original graph. Defaults to None.
 
+            node_features_no_transform (list, optional):
+                List of node feature type ids for which no random transform should
+                be used.
         Returns:
             torch.Tensor: Node embeddings for given (sub)graph.
         """
@@ -128,7 +132,11 @@ class RRGCNEmbedder(torch.nn.Module):
         if edge_type is not None:
             kwargs = {**kwargs, "edge_type": edge_type}
 
-        x = self.ne(node_features, node_idx)
+        x = self.ne(
+            node_features,
+            node_idx,
+            node_features_no_transform=node_features_no_transform,
+        )
 
         x = self.layers[0](x, **kwargs)
 
@@ -265,6 +273,7 @@ class RRGCNEmbedder(torch.nn.Module):
         ] = "standard",
         idx: Optional[torch.Tensor] = None,
         subgraph: bool = True,
+        node_features_no_transform: list = None,
     ) -> torch.Tensor:
         """Generate embeddings for a given set of nodes of interest.
 
@@ -317,6 +326,10 @@ class RRGCNEmbedder(torch.nn.Module):
                 message passing. This is useful for small graphs where embeddings can be
                 extracted full-batch and calculating the subgraph comes with a
                 significant overhead. Defaults to True.
+
+            node_features_no_transform (list, optional):
+                List of node feature type ids for which no random transform should
+                be used.
 
         Returns:
             torch.Tensor: Node embeddings for given nodes of interest
@@ -447,7 +460,12 @@ class RRGCNEmbedder(torch.nn.Module):
             # Calculate embeddings for all nodes participating in batch and then select
             # the queried nodes
             emb = (
-                self(adj_t, node_idx=nodes, node_features=sub_node_features)[mapping]
+                self(
+                    adj_t,
+                    node_idx=nodes,
+                    node_features=sub_node_features,
+                    node_features_no_transform=node_features_no_transform,
+                )[mapping]
                 .detach()
                 .cpu()
             )

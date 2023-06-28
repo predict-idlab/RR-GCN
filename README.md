@@ -43,14 +43,3 @@ After installing the correct PyG version for your PyTorch/CUDA installation as d
 
 ## Full paper results & reproduction
 See [experiments documentation](experiments/)
-
-% ## Cite
-%```
-%@article{degraeve2022rgcn,
-%    author = {Degraeve, Vic and Vandewiele, Gilles and Ongenae, Femke and Van Hoecke, Sofie},
-%    title = {R-GCN: The R Could Stand for Random},
-%    journal = {arXiv},
-%    year = {2022},
-%    url = {https://arxiv.org/abs/2203.02424}
-%}
-%```
